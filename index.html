@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Đánh giá Tarot Nhà Chuột</title>
+
+<style>
+
+body{
+font-family: serif;
+background: linear-gradient(135deg,#1a1a1a,#3a2b2b);
+color:white;
+text-align:center;
+padding:40px;
+}
+
+.container{
+background:rgba(0,0,0,0.6);
+padding:30px;
+border-radius:20px;
+max-width:600px;
+margin:auto;
+box-shadow:0 0 20px rgba(255,215,0,0.4);
+}
+
+h1{
+color:gold;
+}
+
+.stars{
+font-size:35px;
+cursor:pointer;
+}
+
+.star{
+color:gray;
+}
+
+.star.active{
+color:gold;
+}
+
+textarea{
+width:90%;
+height:80px;
+border-radius:10px;
+border:none;
+padding:10px;
+margin-top:10px;
+}
+
+button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:10px;
+background:gold;
+font-weight:bold;
+cursor:pointer;
+}
+
+.review{
+background:#222;
+margin-top:15px;
+padding:10px;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🐭 Đánh Giá Tarot Nhà Chuột</h1>
+
+<p>Hãy đánh giá trải nghiệm của bạn</p>
+
+<div class="stars">
+<span class="star" onclick="setRating(1)">★</span>
+<span class="star" onclick="setRating(2)">★</span>
+<span class="star" onclick="setRating(3)">★</span>
+<span class="star" onclick="setRating(4)">★</span>
+<span class="star" onclick="setRating(5)">★</span>
+</div>
+
+<textarea id="note" placeholder="Viết cảm nhận của bạn (ẩn danh)..."></textarea>
+<br>
+
+<button onclick="submitReview()">Gửi đánh giá</button>
+
+<h2>⭐ Điểm trung bình: <span id="avg">0</span>/5</h2>
+
+<div id="reviews"></div>
+
+</div>
+
+<script>
+
+let rating=0
+
+function setRating(r){
+rating=r
+let stars=document.querySelectorAll(".star")
+stars.forEach((s,i)=>{
+s.classList.toggle("active",i<r)
+})
+}
+
+function submitReview(){
+
+if(rating==0){
+alert("Vui lòng chọn số sao")
+return
+}
+
+let note=document.getElementById("note").value
+
+let reviews=JSON.parse(localStorage.getItem("reviews"))||[]
+
+reviews.push({rating:rating,note:note})
+
+localStorage.setItem("reviews",JSON.stringify(reviews))
+
+document.getElementById("note").value=""
+
+rating=0
+setRating(0)
+
+loadReviews()
+
+}
+
+function loadReviews(){
+
+let reviews=JSON.parse(localStorage.getItem("reviews"))||[]
+
+let container=document.getElementById("reviews")
+
+container.innerHTML=""
+
+let total=0
+
+reviews.forEach(r=>{
+
+total+=r.rating
+
+let div=document.createElement("div")
+div.className="review"
+
+div.innerHTML="⭐".repeat(r.rating)+"<br>"+r.note
+
+container.appendChild(div)
+
+})
+
+let avg=reviews.length? (total/reviews.length).toFixed(2):0
+
+document.getElementById("avg").innerText=avg
+
+}
+
+loadReviews()
+
+</script>
+
+</body>
+</html>
