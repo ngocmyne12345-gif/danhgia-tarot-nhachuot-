@@ -1,35 +1,28 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
+
 <meta charset="UTF-8">
-<title>Đánh giá Tarot Nhà Chuột</title>
+<title>Đánh Giá Tarot Nhà Chuột</title>
 
 <style>
 
-.review{
-background:#1b1b1b;
-margin-top:15px;
-padding:15px;
-border-radius:10px;
-text-align:left;
-border-left:4px solid gold;
-}
-
 body{
-font-family: serif;
-background: linear-gradient(135deg,#1a1a1a,#3a2b2b);
+font-family:serif;
+background:linear-gradient(135deg,#0d0d0d,#2b1b1b);
 color:white;
 text-align:center;
 padding:40px;
 }
 
 .container{
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.75);
 padding:30px;
 border-radius:20px;
-max-width:600px;
+max-width:650px;
 margin:auto;
-box-shadow:0 0 20px rgba(255,215,0,0.4);
+box-shadow:0 0 25px rgba(255,215,0,0.5);
 }
 
 h1{
@@ -59,8 +52,8 @@ margin-top:10px;
 }
 
 button{
-margin-top:15px;
-padding:10px 20px;
+margin-top:10px;
+padding:8px 16px;
 border:none;
 border-radius:10px;
 background:gold;
@@ -68,37 +61,72 @@ font-weight:bold;
 cursor:pointer;
 }
 
-#reviews{
-max-height:300px;
-overflow-y:auto;
-margin-top:20px;
+.review{
+background:#1b1b1b;
+margin-top:15px;
+padding:15px;
+border-radius:10px;
+text-align:left;
+border-left:4px solid gold;
+}
+
+.time{
+font-size:12px;
+color:#ccc;
+}
+
+.reply{
+color:#90ff90;
+margin-top:5px;
+}
+
+.bar{
+height:8px;
+background:#444;
+border-radius:5px;
+margin:4px 0;
+}
+
+.fill{
+height:8px;
+background:gold;
+border-radius:5px;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>🐭 Đánh Giá Tarot Nhà Chuột</h1>
+<h1>🔮 Đánh Giá Tarot Nhà Chuột</h1>
 
-<p>Hãy đánh giá trải nghiệm của bạn</p>
+<p>Hãy chia sẻ trải nghiệm của bạn</p>
 
 <div class="stars">
+
 <span class="star" onclick="setRating(1)">★</span>
 <span class="star" onclick="setRating(2)">★</span>
 <span class="star" onclick="setRating(3)">★</span>
 <span class="star" onclick="setRating(4)">★</span>
 <span class="star" onclick="setRating(5)">★</span>
+
 </div>
 
 <textarea id="note" placeholder="Viết cảm nhận của bạn (ẩn danh)..."></textarea>
+
 <br>
 
 <button onclick="submitReview()">Gửi đánh giá</button>
 
-<h2>⭐ Điểm trung bình: <span id="avg">0</span>/5</h2>
+<h2>
+⭐ <span id="avg">0</span>/5
+(<span id="count">0</span> đánh giá)
+</h2>
+
+<div id="chart"></div>
 
 <div id="reviews"></div>
 
@@ -107,43 +135,78 @@ margin-top:20px;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyClU5Z22MqkOAuaTtByZajWVLp8Ht-JB80",
-authDomain: "danhgia-tarot-nhachuot.firebaseapp.com",
-projectId: "danhgia-tarot-nhachuot",
-storageBucket: "danhgia-tarot-nhachuot.firebasestorage.app",
-messagingSenderId: "637805290312",
-appId: "1:637805290312:web:5ab54a702f9d080389c97d"
-};
+import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
+doc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let rating = 0;
-
-window.setRating = function(r){
-rating=r
-let stars=document.querySelectorAll(".star")
-stars.forEach((s,i)=>{
-s.classList.toggle("active",i<r)
-})
+const firebaseConfig={
+apiKey:"AIzaSyClU5Z22MqkOAuaTtByZajWVLp8Ht-JB80",
+authDomain:"danhgia-tarot-nhachuot.firebaseapp.com",
+projectId:"danhgia-tarot-nhachuot"
 }
 
-window.submitReview = async function(){
+const app=initializeApp(firebaseConfig)
+const db=getFirestore(app)
+
+let rating=0
+
+const badWords=[
+"địt","đụ","lồn","cặc","fuck","shit"
+]
+
+window.setRating=function(r){
+
+rating=Math.min(r,5)
+
+let stars=document.querySelectorAll(".star")
+
+stars.forEach((s,i)=>{
+s.classList.toggle("active",i<rating)
+})
+
+}
+
+window.submitReview=async function(){
 
 if(rating==0){
-alert("Vui lòng chọn số sao")
+alert("Chọn số sao trước")
 return
 }
 
 let note=document.getElementById("note").value
 
+for(let w of badWords){
+
+if(note.toLowerCase().includes(w)){
+alert("Nội dung không phù hợp")
+return
+}
+
+}
+
+let last=localStorage.getItem("lastReview")
+
+if(last && Date.now()-last<600000){
+alert("Bạn vừa đánh giá rồi. Vui lòng đợi 10 phút.")
+return
+}
+
 await addDoc(collection(db,"reviews"),{
+
 rating:rating,
-note:note
+note:note,
+reply:"",
+time:Date.now()
+
 })
+
+localStorage.setItem("lastReview",Date.now())
 
 document.getElementById("note").value=""
 rating=0
@@ -153,38 +216,99 @@ loadReviews()
 
 }
 
+window.replyReview=async function(id){
+
+let text=prompt("Phản hồi của shop")
+
+if(!text)return
+
+const ref=doc(db,"reviews",id)
+
+await updateDoc(ref,{reply:text})
+
+loadReviews()
+
+}
+
 async function loadReviews(){
 
-let snapshot = await getDocs(collection(db,"reviews"))
+let snapshot=await getDocs(collection(db,"reviews"))
 
 let container=document.getElementById("reviews")
 container.innerHTML=""
 
+let arr=[]
+
+snapshot.forEach(d=>{
+arr.push({id:d.id,...d.data()})
+})
+
+arr.sort((a,b)=>b.time-a.time)
+
 let total=0
 let count=0
 
-snapshot.forEach(doc=>{
+let stat=[0,0,0,0,0]
 
-let r = doc.data()
+arr.forEach(r=>{
 
-total+=r.rating
+let star=Math.min(r.rating,5)
+
+stat[star-1]++
+
+total+=star
 count++
 
+let date=new Date(r.time).toLocaleString("vi-VN")
+
 let div=document.createElement("div")
+
 div.className="review"
 
 div.innerHTML=`
+
 <b>Ẩn danh</b><br>
-⭐ ${"⭐".repeat(r.rating)}<br>
-${r.note ? "💬 "+r.note : ""}
+
+⭐ ${"⭐".repeat(star)}<br>
+
+${r.note?"💬 "+r.note+"<br>":""}
+
+<div class="time">🕒 ${date}</div>
+
+${r.reply?`<div class="reply">🐭 Shop: ${r.reply}</div>`:""}
+
+<button onclick="replyReview('${r.id}')">Phản hồi</button>
+
 `
 
 container.appendChild(div)
 
 })
 
-let avg=count? (total/count).toFixed(2):0
+let avg=count?(total/count).toFixed(2):0
+
 document.getElementById("avg").innerText=avg
+document.getElementById("count").innerText=count
+
+let chart=""
+
+for(let i=5;i>=1;i--){
+
+let percent=count?Math.round(stat[i-1]/count*100):0
+
+chart+=`
+
+${i}⭐
+
+<div class="bar">
+<div class="fill" style="width:${percent}%"></div>
+</div>
+
+`
+
+}
+
+document.getElementById("chart").innerHTML=chart
 
 }
 
