@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
 
 <meta charset="UTF-8">
@@ -17,12 +16,12 @@ padding:40px;
 }
 
 .container{
-background:rgba(0,0,0,0.75);
+background:rgba(0,0,0,0.8);
 padding:30px;
 border-radius:20px;
 max-width:650px;
 margin:auto;
-box-shadow:0 0 25px rgba(255,215,0,0.5);
+box-shadow:0 0 25px rgba(255,215,0,0.6);
 }
 
 h1{
@@ -51,6 +50,10 @@ padding:10px;
 margin-top:10px;
 }
 
+input[type=file]{
+margin-top:10px;
+}
+
 button{
 margin-top:10px;
 padding:8px 16px;
@@ -68,6 +71,12 @@ padding:15px;
 border-radius:10px;
 text-align:left;
 border-left:4px solid gold;
+}
+
+.review img{
+width:100%;
+border-radius:10px;
+margin-top:8px;
 }
 
 .time{
@@ -103,19 +112,21 @@ border-radius:5px;
 
 <h1>🔮 Đánh Giá Tarot Nhà Chuột</h1>
 
-<p>Hãy chia sẻ trải nghiệm của bạn</p>
+<p>Chia sẻ trải nghiệm của bạn</p>
 
 <div class="stars">
-
 <span class="star" onclick="setRating(1)">★</span>
 <span class="star" onclick="setRating(2)">★</span>
 <span class="star" onclick="setRating(3)">★</span>
 <span class="star" onclick="setRating(4)">★</span>
 <span class="star" onclick="setRating(5)">★</span>
-
 </div>
 
-<textarea id="note" placeholder="Viết cảm nhận của bạn (ẩn danh)..."></textarea>
+<textarea id="note" placeholder="Viết cảm nhận..."></textarea>
+
+<br>
+
+<input type="file" id="image">
 
 <br>
 
@@ -145,14 +156,23 @@ doc,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+getStorage,
+ref,
+uploadBytes,
+getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 const firebaseConfig={
 apiKey:"AIzaSyClU5Z22MqkOAuaTtByZajWVLp8Ht-JB80",
 authDomain:"danhgia-tarot-nhachuot.firebaseapp.com",
-projectId:"danhgia-tarot-nhachuot"
+projectId:"danhgia-tarot-nhachuot",
+storageBucket:"danhgia-tarot-nhachuot.appspot.com"
 }
 
 const app=initializeApp(firebaseConfig)
 const db=getFirestore(app)
+const storage=getStorage(app)
 
 let rating=0
 
@@ -164,9 +184,7 @@ window.setRating=function(r){
 
 rating=Math.min(r,5)
 
-let stars=document.querySelectorAll(".star")
-
-stars.forEach((s,i)=>{
+document.querySelectorAll(".star").forEach((s,i)=>{
 s.classList.toggle("active",i<rating)
 })
 
@@ -175,7 +193,7 @@ s.classList.toggle("active",i<rating)
 window.submitReview=async function(){
 
 if(rating==0){
-alert("Chọn số sao trước")
+alert("Chọn số sao")
 return
 }
 
@@ -193,22 +211,37 @@ return
 let last=localStorage.getItem("lastReview")
 
 if(last && Date.now()-last<600000){
-alert("Bạn vừa đánh giá rồi. Vui lòng đợi 10 phút.")
+alert("Đợi 10 phút rồi hãy đánh giá tiếp")
 return
 }
 
-await addDoc(collection(db,"reviews"),{
+let imageUrl=""
 
+let file=document.getElementById("image").files[0]
+
+if(file){
+
+let storageRef=ref(storage,"reviews/"+Date.now())
+
+await uploadBytes(storageRef,file)
+
+imageUrl=await getDownloadURL(storageRef)
+
+}
+
+await addDoc(collection(db,"reviews"),{
 rating:rating,
 note:note,
 reply:"",
+image:imageUrl,
 time:Date.now()
-
 })
 
 localStorage.setItem("lastReview",Date.now())
 
 document.getElementById("note").value=""
+document.getElementById("image").value=""
+
 rating=0
 setRating(0)
 
@@ -222,9 +255,9 @@ let text=prompt("Phản hồi của shop")
 
 if(!text)return
 
-const ref=doc(db,"reviews",id)
+const refDoc=doc(db,"reviews",id)
 
-await updateDoc(ref,{reply:text})
+await updateDoc(refDoc,{reply:text})
 
 loadReviews()
 
@@ -234,9 +267,6 @@ async function loadReviews(){
 
 let snapshot=await getDocs(collection(db,"reviews"))
 
-let container=document.getElementById("reviews")
-container.innerHTML=""
-
 let arr=[]
 
 snapshot.forEach(d=>{
@@ -244,6 +274,9 @@ arr.push({id:d.id,...d.data()})
 })
 
 arr.sort((a,b)=>b.time-a.time)
+
+let container=document.getElementById("reviews")
+container.innerHTML=""
 
 let total=0
 let count=0
@@ -273,6 +306,8 @@ div.innerHTML=`
 
 ${r.note?"💬 "+r.note+"<br>":""}
 
+${r.image?`<img src="${r.image}">`:""}
+
 <div class="time">🕒 ${date}</div>
 
 ${r.reply?`<div class="reply">🐭 Shop: ${r.reply}</div>`:""}
@@ -297,13 +332,10 @@ for(let i=5;i>=1;i--){
 let percent=count?Math.round(stat[i-1]/count*100):0
 
 chart+=`
-
 ${i}⭐
-
 <div class="bar">
 <div class="fill" style="width:${percent}%"></div>
 </div>
-
 `
 
 }
