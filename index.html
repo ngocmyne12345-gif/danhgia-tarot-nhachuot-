@@ -148,8 +148,12 @@ total+=r.rating
 let div=document.createElement("div")
 div.className="review"
 
-div.innerHTML="⭐".repeat(r.rating)+"<br>"+r.note
-
+div.innerHTML = `
+<b>Ẩn danh</b><br>
+⭐ ${"⭐".repeat(r.rating)}<br>
+${r.note ? "💬 " + r.note : ""}
+`
+  
 container.appendChild(div)
 
 })
