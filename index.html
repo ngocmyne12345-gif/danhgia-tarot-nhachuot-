@@ -6,15 +6,15 @@
 
 <style>
 
- .review{
+.review{
 background:#1b1b1b;
 margin-top:15px;
 padding:15px;
 border-radius:10px;
 text-align:left;
 border-left:4px solid gold;
-} 
-  
+}
+
 body{
 font-family: serif;
 background: linear-gradient(135deg,#1a1a1a,#3a2b2b);
@@ -104,91 +104,18 @@ margin-top:20px;
 
 </div>
 
-<script>
-
-let rating=0
-
-function setRating(r){
-rating=r
-let stars=document.querySelectorAll(".star")
-stars.forEach((s,i)=>{
-s.classList.toggle("active",i<r)
-})
-}
-
-function submitReview(){
-
-if(rating==0){
-alert("Vui lòng chọn số sao")
-return
-}
-
-let note=document.getElementById("note").value
-
-let reviews=JSON.parse(localStorage.getItem("reviews"))||[]
-
-reviews.push({rating:rating,note:note})
-
-localStorage.setItem("reviews",JSON.stringify(reviews))
-
-document.getElementById("note").value=""
-
-rating=0
-setRating(0)
-
-loadReviews()
-
-}
-
-function loadReviews(){
-
-let reviews=JSON.parse(localStorage.getItem("reviews"))||[]
-
-let container=document.getElementById("reviews")
-
-container.innerHTML=""
-
-let total=0
-
-reviews.forEach(r=>{
-
-total+=r.rating
-
-let div=document.createElement("div")
-div.className="review"
-
-div.innerHTML = `
-<b>Ẩn danh</b><br>
-⭐ ${"⭐".repeat(r.rating)}<br>
-${r.note ? "💬 " + r.note : ""}
-`
-  
-container.appendChild(div)
-
-})
-
-let avg=reviews.length? (total/reviews.length).toFixed(2):0
-
-document.getElementById("avg").innerText=avg
-
-}
-
-loadReviews()
-
-</div>
-
- <script type="module">
+<script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyClU5Z2ZMqkOAuaTtByZajWVLP8Ht-JB80",
-  authDomain: "danhgia-tarot-nhachuot.firebaseapp.com",
-  projectId: "danhgia-tarot-nhachuot",
-  storageBucket: "danhgia-tarot-nhachuot.firebasestorage.app",
-  messagingSenderId: "637805290312",
-  appId: "1:637805290312:web:5ab54a702f9d080389c97d"
+apiKey: "AIzaSyClU5Z22MqkOAuaTtByZajWVLp8Ht-JB80",
+authDomain: "danhgia-tarot-nhachuot.firebaseapp.com",
+projectId: "danhgia-tarot-nhachuot",
+storageBucket: "danhgia-tarot-nhachuot.firebasestorage.app",
+messagingSenderId: "637805290312",
+appId: "1:637805290312:web:5ab54a702f9d080389c97d"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -263,31 +190,7 @@ document.getElementById("avg").innerText=avg
 
 loadReviews()
 
-<script type="module">
-
- import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
- import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
- 
-// Import the functions you need from the SDKs you need
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyClU5Z22MqkOAuaTtByZajWVLp8Ht-JB80",
-  authDomain: "danhgia-tarot-nhachuot.firebaseapp.com",
-  projectId: "danhgia-tarot-nhachuot",
-  storageBucket: "danhgia-tarot-nhachuot.firebasestorage.app",
-  messagingSenderId: "637805290312",
-  appId: "1:637805290312:web:5ab54a702f9d080389c97d",
-  measurementId: "G-7ZWVWK2GP7"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 </script>
+
 </body>
 </html>
